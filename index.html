@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kalkulator Tingkat Bunga Majemuk</title>
+    <title>Kalkulator Tingkat Bunga Majemuk (dengan Biaya Tambahan)</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -72,16 +72,22 @@
 </head>
 <body>
     <div class="container">
-        <h2>Kalkulator Tingkat Bunga Majemuk</h2>
+        <h2>Kalkulator Tingkat Bunga Investasi</h2>
 
         <label for="initialInvestment">Investasi Awal:</label>
         <input type="number" id="initialInvestment" placeholder="contoh: 1000" required>
 
+        <label for="adminCost">Biaya Administrasi (Nominal):</label>
+        <input type="number" id="adminCost" placeholder="contoh: 50 (biaya tambahan saat investasi)" value="0">
+
         <label for="yearsInvestment">Lama Investasi (Tahun):</label>
         <input type="number" id="yearsInvestment" placeholder="contoh: 3" required>
 
-        <label for="currentValue">Nilai Saat Ini / Nilai Jual:</label>
+        <label for="currentValue">Nilai Saat Ini / Nilai Jual Bruto:</label>
         <input type="number" id="currentValue" placeholder="contoh: 1331" required>
+
+        <label for="sellingCostPercent">Potongan Biaya Penjualan Agen (% dari Harga Jual):</label>
+        <input type="number" id="sellingCostPercent" placeholder="contoh: 5 (untuk 5%)" value="0">
 
         <button onclick="calculateInterest()">Hitung Tingkat Bunga</button>
 
@@ -92,38 +98,50 @@
     <script>
         function calculateInterest() {
             const initialInvestment = parseFloat(document.getElementById('initialInvestment').value);
+            const adminCost = parseFloat(document.getElementById('adminCost').value);
             const yearsInvestment = parseFloat(document.getElementById('yearsInvestment').value);
             const currentValue = parseFloat(document.getElementById('currentValue').value);
+            const sellingCostPercent = parseFloat(document.getElementById('sellingCostPercent').value);
+
             const resultDiv = document.getElementById('result');
             const errorDiv = document.getElementById('error');
 
             resultDiv.textContent = ''; // Hapus hasil sebelumnya
             errorDiv.textContent = '';   // Hapus pesan kesalahan sebelumnya
 
-            if (isNaN(initialInvestment) || isNaN(yearsInvestment) || isNaN(currentValue) || initialInvestment <= 0 || yearsInvestment <= 0 || currentValue <= 0) {
-                errorDiv.textContent = 'Mohon masukkan angka positif yang valid untuk semua kolom.';
+            // --- Validasi Input ---
+            if (isNaN(initialInvestment) || initialInvestment <= 0 ||
+                isNaN(yearsInvestment) || yearsInvestment <= 0 ||
+                isNaN(currentValue) || currentValue <= 0) {
+                errorDiv.textContent = 'Mohon masukkan angka positif yang valid untuk Investasi Awal, Lama Investasi, dan Nilai Jual.';
                 return;
             }
 
-            if (currentValue < initialInvestment) {
-                errorDiv.textContent = 'Nilai Saat Ini / Nilai Jual tidak boleh kurang dari Investasi Awal untuk tingkat bunga positif.';
+            if (isNaN(adminCost) || adminCost < 0) {
+                errorDiv.textContent = 'Biaya Administrasi harus angka nol atau positif.';
                 return;
             }
 
-            // Rumus Bunga Majemuk: A = P(1 + r/n)^(nt)
-            // Di mana:
-            // A = nilai investasi/pinjaman di masa depan, termasuk bunga
-            // P = jumlah investasi pokok (jumlah setoran awal atau pinjaman)
-            // r = tingkat bunga tahunan (sebagai desimal)
-            // n = jumlah kali bunga digabungkan per tahun (untuk kesederhanaan, kita asumsikan n=1 untuk penggabungan tahunan)
-            // t = jumlah tahun uang diinvestasikan atau dipinjam
+            if (isNaN(sellingCostPercent) || sellingCostPercent < 0 || sellingCostPercent >= 100) {
+                errorDiv.textContent = 'Potongan Biaya Penjualan Agen harus antara 0 dan kurang dari 100.';
+                return;
+            }
 
-            // Kita perlu mencari 'r'
-            // A/P = (1 + r)^t
-            // (A/P)^(1/t) = 1 + r
-            // r = (A/P)^(1/t) - 1
+            // --- Perhitungan Investasi Bersih & Nilai Jual Bersih ---
+            const totalInitialInvestment = initialInvestment + adminCost; // Investasi awal termasuk biaya administrasi
+            
+            // Hitung nilai jual bersih setelah dipotong biaya agen
+            const sellingCostAmount = (sellingCostPercent / 100) * currentValue;
+            const netSellingValue = currentValue - sellingCostAmount;
 
-            const ratio = currentValue / initialInvestment;
+            if (netSellingValue < totalInitialInvestment) {
+                errorDiv.textContent = 'Nilai Jual Bersih tidak boleh kurang dari Total Investasi Awal untuk tingkat bunga positif.';
+                return;
+            }
+
+            // --- Perhitungan Tingkat Bunga Majemuk ---
+            // Rumus: r = (Nilai Akhir Bersih / Investasi Awal Bersih)^(1/t) - 1
+            const ratio = netSellingValue / totalInitialInvestment;
             const rate = Math.pow(ratio, (1 / yearsInvestment)) - 1;
 
             if (isNaN(rate)) {
