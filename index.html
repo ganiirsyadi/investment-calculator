@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kalkulator Tingkat Bunga Majemuk</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        .container {
+            background-color: #fff;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            max-width: 400px;
+            margin: auto;
+        }
+        h2 {
+            text-align: center;
+            color: #0056b3;
+            margin-bottom: 25px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        input[type="number"] {
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #e9ecef;
+            text-align: center;
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #007bff;
+        }
+        #error {
+            margin-top: 15px;
+            color: red;
+            text-align: center;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Kalkulator Tingkat Bunga Majemuk</h2>
+
+        <label for="initialInvestment">Investasi Awal:</label>
+        <input type="number" id="initialInvestment" placeholder="contoh: 1000" required>
+
+        <label for="yearsInvestment">Lama Investasi (Tahun):</label>
+        <input type="number" id="yearsInvestment" placeholder="contoh: 3" required>
+
+        <label for="currentValue">Nilai Saat Ini / Nilai Jual:</label>
+        <input type="number" id="currentValue" placeholder="contoh: 1331" required>
+
+        <button onclick="calculateInterest()">Hitung Tingkat Bunga</button>
+
+        <div id="result"></div>
+        <div id="error"></div>
+    </div>
+
+    <script>
+        function calculateInterest() {
+            const initialInvestment = parseFloat(document.getElementById('initialInvestment').value);
+            const yearsInvestment = parseFloat(document.getElementById('yearsInvestment').value);
+            const currentValue = parseFloat(document.getElementById('currentValue').value);
+            const resultDiv = document.getElementById('result');
+            const errorDiv = document.getElementById('error');
+
+            resultDiv.textContent = ''; // Hapus hasil sebelumnya
+            errorDiv.textContent = '';   // Hapus pesan kesalahan sebelumnya
+
+            if (isNaN(initialInvestment) || isNaN(yearsInvestment) || isNaN(currentValue) || initialInvestment <= 0 || yearsInvestment <= 0 || currentValue <= 0) {
+                errorDiv.textContent = 'Mohon masukkan angka positif yang valid untuk semua kolom.';
+                return;
+            }
+
+            if (currentValue < initialInvestment) {
+                errorDiv.textContent = 'Nilai Saat Ini / Nilai Jual tidak boleh kurang dari Investasi Awal untuk tingkat bunga positif.';
+                return;
+            }
+
+            // Rumus Bunga Majemuk: A = P(1 + r/n)^(nt)
+            // Di mana:
+            // A = nilai investasi/pinjaman di masa depan, termasuk bunga
+            // P = jumlah investasi pokok (jumlah setoran awal atau pinjaman)
+            // r = tingkat bunga tahunan (sebagai desimal)
+            // n = jumlah kali bunga digabungkan per tahun (untuk kesederhanaan, kita asumsikan n=1 untuk penggabungan tahunan)
+            // t = jumlah tahun uang diinvestasikan atau dipinjam
+
+            // Kita perlu mencari 'r'
+            // A/P = (1 + r)^t
+            // (A/P)^(1/t) = 1 + r
+            // r = (A/P)^(1/t) - 1
+
+            const ratio = currentValue / initialInvestment;
+            const rate = Math.pow(ratio, (1 / yearsInvestment)) - 1;
+
+            if (isNaN(rate)) {
+                 errorDiv.textContent = 'Kesalahan perhitungan. Mohon periksa kembali input Anda.';
+                 return;
+            }
+
+            const percentageRate = (rate * 100).toFixed(2); // Format ke dua angka di belakang koma
+
+            resultDiv.textContent = `Tingkat Bunga Perkiraan: ${percentageRate}% per tahun`;
+        }
+    </script>
+</body>
+</html>
